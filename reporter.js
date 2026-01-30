@@ -1,12 +1,9 @@
 class Reporter {
-  static generateJSON(results) {
-    return JSON.stringify(results, null, 2);
+  static generateJSON(results, wpInfo) {
+    return JSON.stringify({ wpInfo, ...results }, null, 2);
   }
   
-  static generateHTML(results) {
-    // Use a template engine to render HTML
-    return `<html><body><h1>Audit Report</h1>${Object.entries(results).map(([key, issues]) => 
-      `<h2>${key}</h2><ul>${issues.map(i => `<li>${i.type}: ${i.fix}</li>`).join('')}</ul>`
-    ).join('')}</body></html>`;
+  static generateHTML(results, wpInfo) {
+    return `<html><body><h1>WordPress Audit Report</h1><p>Theme: ${wpInfo.theme}, Builder: ${wpInfo.builder}</p>${/* Render issues */}</body></html>`;
   }
 }
