@@ -1,37 +1,37 @@
 const { chromium } = require('playwright');
+const WPDetector = require('./wp-detector');
 const Crawler = require('./crawler');
-const FunctionalAudit = require('./audits/functional');
-const ResponsiveAudit = require('./audits/responsive');
+const WPFunctionalAudit = require('./audits/wp-functional');
 // ... other audits
 const Reporter = require('./reporter');
 
-async function runAudit(url) {
+async function runWPAudit(url) {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext();
   
-  const crawler = new Crawler(context);
-  const pages = await crawler.crawl(url); // Returns array of page objects with URLs and DOM data
+  const detector = new WPDetector();
+  const wpInfo = await detector.detect(url); // { isWP: true, theme: 'Twenty Twenty-One', plugins: ['yoast-seo'], builder: 'gutenberg' }
+  if (!wpInfo.isWP) throw new Error('Not a WordPress site');
+  
+  const crawler = new Crawler(context, wpInfo);
+  const pages = await crawler.crawl(url); // Includes WP post IDs, templates
   
   const results = {};
-  // Run audits in parallel
   const audits = [
-    new FunctionalAudit(context).run(pages),
-    new ResponsiveAudit(context).run(pages),
+    new WPFunctionalAudit(context, wpInfo).run(pages),
     // ... other audits
   ];
   const auditResults = await Promise.all(audits);
   
-  // Aggregate results
-  results.functional = auditResults[0];
+  results.wpFunctional = auditResults[0];
   // ...
   
   await browser.close();
   
-  // Generate reports
-  const jsonReport = Reporter.generateJSON(results);
-  const htmlReport = Reporter.generateHTML(results);
+  const jsonReport = Reporter.generateJSON(results, wpInfo);
+  const htmlReport = Reporter.generateHTML(results, wpInfo);
   
   return { json: jsonReport, html: htmlReport };
 }
 
-module.exports = { runAudit };
+module.exports = { runWPAudit };
