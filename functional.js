@@ -1,6 +1,7 @@
-class FunctionalAudit {
-  constructor(context) {
+class WPFunctionalAudit {
+  constructor(context, wpInfo) {
     this.context = context;
+    this.wpInfo = wpInfo;
   }
   
   async run(pages) {
@@ -9,24 +10,30 @@ class FunctionalAudit {
       const pageInstance = await this.context.newPage();
       await pageInstance.goto(page.url);
       
-      // Check links
-      for (const link of page.links) {
+      for (const el of page.elements) {
         const response = await pageInstance.evaluate(async (href) => {
           try {
             const res = await fetch(href);
-            return { status: res.status, redirected: res.redirected };
+            return { status: res.status };
           } catch { return { status: 0 }; }
-        }, link.url);
+        }, el.url);
         
         if (response.status >= 400) {
           issues.push({
             severity: 'critical',
-            type: 'broken_link',
-            location: { url: page.url, element: link.element, selector: link.selector },
-            fix: `Fix or remove the link to ${link.url}.`
+            type: 'broken_wp_link',
+            location: {
+              url: page.url,
+              postId: page.postData.id,
+              postTitle: page.postData.title,
+              block: 'menu-block', // Infer from WP
+              selector: el.selector,
+              template: page.template
+            },
+            fix: `Update the permalink or remove the ${el.type} in ${this.wpInfo.theme}.`
           });
         }
-        // Check redirects, anchors, etc.
+        // Check for noindex/draft via API or meta
       }
       await pageInstance.close();
     }
