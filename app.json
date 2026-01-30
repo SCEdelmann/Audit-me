@@ -1,12 +1,54 @@
-class Reporter {
-  static generateJSON(results) {
-    return JSON.stringify(results, null, 2);
-  }
-  
-  static generateHTML(results) {
-    // Use a template engine to render HTML
-    return `<html><body><h1>Audit Report</h1>${Object.entries(results).map(([key, issues]) => 
-      `<h2>${key}</h2><ul>${issues.map(i => `<li>${i.type}: ${i.fix}</li>`).join('')}</ul>`
-    ).join('')}</body></html>`;
-  }
+{
+  "wpInfo": {
+    "isWP": true,
+    "theme": "Twenty Twenty-One",
+    "plugins": ["yoast-seo", "elementor"],
+    "builder": "elementor"
+  },
+  "wpFunctional": [
+    {
+      "severity": "critical",
+      "type": "broken_wp_link",
+      "location": {
+        "url": "https://example.com/page1",
+        "postId": 123,
+        "postTitle": "Sample Post",
+        "block": "menu-block",
+        "selector": ".menu-item-1",
+        "template": "header.php"
+      },
+      "fix": "Update the menu link in Twenty Twenty-One's header.php."
+    }
+  ],
+  "pageBuilder": [
+    {
+      "severity": "warning",
+      "type": "elementor_widget_issue",
+      "location": {
+        "url": "https://example.com/page1",
+        "blockType": "button",
+        "selector": ".elementor-button"
+      },
+      "fix": "Adjust button size in Elementor editor to prevent overlap."
+    }
+  ],
+  "wpImage": [
+    {
+      "severity": "info",
+      "type": "missing_srcset",
+      "location": {
+        "url": "https://example.com/page1",
+        "selector": "img[src='image.jpg']"
+      },
+      "fix": "Use WP 'medium' size and regenerate thumbnails."
+    }
+  ],
+  "wpSeo": [
+    {
+      "severity": "warning",
+      "type": "wp_seo_issue",
+      "location": { "url": "https://example.com/page1" },
+      "fix": "Add Yoast focus keyword and meta description."
+    }
+  ]
 }
